@@ -1,0 +1,11 @@
+/output/
+/generated-docs/
+/.psc*
+/.purs*
+/.psa*
+/.spago
+/public
+/sample
+/packages.dhall
+/spago.dhall
+/src

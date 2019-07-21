@@ -10,6 +10,7 @@ import Data.Either (Either(..))
 import Data.Foldable (foldr, notElem)
 import Data.Function.Uncurried (Fn4, runFn4)
 import Data.String (Pattern(..), Replacement(..), joinWith, replaceAll, split)
+import Data.String as String
 import Data.String.Regex (replace, test)
 import Data.String.Regex.Flags (global, noFlags)
 import Data.String.Regex.Unsafe (unsafeRegex)
@@ -72,9 +73,9 @@ createManifest opts =
   handleDir opts.inputDir <#> Array.sortBy compareDepth
   where
     compareDepth (Tuple a _) (Tuple b _) =
-      compare
-        (Array.length $ split (Pattern "/") a)
-        (Array.length $ split (Pattern "/") b)
+      case compare (Array.length $ split (Pattern "/") a) (Array.length $ split (Pattern "/") b) of
+        EQ -> compare (String.length a) (String.length b)
+        ord -> ord
     handleDir dir =
       readdir dir >>= (parTraverse $ walk dir) <#> Array.concat
     walk dir file = do

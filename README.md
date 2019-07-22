@@ -26,9 +26,9 @@ $ simple-rev <input_dir> <output_dir>
 
 It does do the following:
 
-- Creates manifest from files of input directory
-- Copy files named with hash to output directory
-- Replace URLs with hashed version
+- Create manifest as inner state from files of input directory
+- Copy files named with hash to output directory from manifest
+- Replace URLs with hashed version from manifest
 
 ## LICENSE
 

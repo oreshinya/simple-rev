@@ -26,7 +26,7 @@ import Node.FS.Aff (readFile, readTextFile, readdir, stat, writeFile, writeTextF
 import Node.FS.Stats (isDirectory, isFile)
 import Node.Path (FilePath, dirname, extname)
 import Node.Path as Path
-import Node.Process (argv)
+import Node.Process (argv, exit)
 
 type Options =
   { inputDir :: FilePath
@@ -44,7 +44,9 @@ rev = do
        in runAff_ cb (createManifest opts >>= build opts)
     _ -> log help
   where
-    cb (Left err) = error $ message err
+    cb (Left err) = do
+      error $ message err
+      exit 1
     cb _ = log "Done."
 
 build :: Options -> Manifest -> Aff Unit

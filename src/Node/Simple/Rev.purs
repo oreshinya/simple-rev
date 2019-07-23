@@ -70,33 +70,41 @@ buildFile opts manifest (Tuple from to) = do
 
 createManifest :: Options -> Aff Manifest
 createManifest opts =
-  handleDir opts.inputDir <#> Array.sortBy compareDepth
+  handleDir opts.inputDir <#> Array.sortBy compareManifestKey
   where
-    compareDepth (Tuple a _) (Tuple b _) =
-      case compare (Array.length $ split (Pattern "/") a) (Array.length $ split (Pattern "/") b) of
-        EQ -> compare (String.length a) (String.length b)
+    compareManifestKey (Tuple a _) (Tuple b _) =
+      case compareDepth a b of
+        EQ -> compareLength a b
         ord -> ord
+    compareDepth a b =
+      compare
+        (Array.length $ split (Pattern "/") a)
+        (Array.length $ split (Pattern "/") b)
+    compareLength a b =
+      compare (String.length a) (String.length b)
     handleDir dir =
       readdir dir >>= (parTraverse $ walk dir) <#> Array.concat
     walk dir file = do
       let file' = Path.concat [ dir, file ]
       stats <- stat file'
       if isFile stats
-        then hashedFilePath file'
+        then fileManifest file'
         else if isDirectory stats then handleDir file' else pure []
 
-hashedFilePath :: FilePath -> Aff Manifest
-hashedFilePath file = do
-  hash <- contentHash file
-  let file' = joinWith "/" $ Array.drop 1 $ split (Pattern "/") file
+fileManifest :: FilePath -> Aff Manifest
+fileManifest file =
   case extname file' of
-    "" ->
-      pure [ Tuple file' $ file' <> "-" <> hash ]
     ".html" ->
       pure [ Tuple file' file' ]
-    ext ->
+    "" -> do
+      hash <- contentHash file
+      pure [ Tuple file' $ file' <> "-" <> hash ]
+    ext -> do
+      hash <- contentHash file
       let reg = unsafeRegex ((escapeRegExp ext) <> "$") noFlags
-       in pure [ Tuple file' $ replace reg ("-" <> hash <> ext) file' ]
+      pure [ Tuple file' $ replace reg ("-" <> hash <> ext) file' ]
+  where
+    file' = joinWith "/" $ Array.drop 1 $ split (Pattern "/") file
 
 contentHash :: FilePath -> Aff String
 contentHash file = do

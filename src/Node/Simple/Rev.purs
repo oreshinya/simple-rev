@@ -72,7 +72,7 @@ buildFile opts manifest (Tuple from to) = do
 
 createManifest :: Options -> Aff Manifest
 createManifest opts =
-  handleDir opts.inputDir <#> Array.sortBy compareManifestKey
+  walk opts.inputDir <#> Array.sortBy compareManifestKey
   where
     compareManifestKey (Tuple a _) (Tuple b _) =
       case compareDepth a b of
@@ -84,14 +84,14 @@ createManifest opts =
         (Array.length $ String.split (Pattern "/") b)
     compareLength a b =
       compare (String.length a) (String.length b)
-    handleDir dir =
-      readdir dir >>= (parTraverse $ walk dir) <#> Array.concat
-    walk dir file = do
+    walk dir =
+      readdir dir >>= (parTraverse $ handleFile dir) <#> Array.concat
+    handleFile dir file = do
       let file' = Path.concat [ dir, file ]
       stats <- stat file'
       if isFile stats
         then fileManifest opts file'
-        else if isDirectory stats then handleDir file' else pure []
+        else if isDirectory stats then walk file' else pure []
 
 fileManifest :: Options -> FilePath -> Aff Manifest
 fileManifest opts file =

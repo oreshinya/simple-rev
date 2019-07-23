@@ -11,7 +11,7 @@ import Data.Foldable (foldr, notElem)
 import Data.Function.Uncurried (Fn4, runFn4)
 import Data.String (Pattern(..), Replacement(..))
 import Data.String as String
-import Data.String.Regex (replace, test)
+import Data.String.Regex (replace, source, test)
 import Data.String.Regex.Flags (global, noFlags)
 import Data.String.Regex.Unsafe (unsafeRegex)
 import Data.Tuple (Tuple(..))
@@ -103,7 +103,7 @@ fileManifest opts file =
       pure [ Tuple file' $ file' <> "-" <> hash ]
     ext -> do
       hash <- contentHash file
-      let reg = unsafeRegex ((escapeRegExp ext) <> "$") noFlags
+      let reg = unsafeRegex ((escapeRegex ext) <> "$") noFlags
       pure [ Tuple file' $ replace reg ("-" <> hash <> ext) file' ]
   where
     file' = String.drop (1 + String.length opts.inputDir) file
@@ -131,13 +131,14 @@ replaceURLTargets =
   , ".css"
   ]
 
-escapeRegExp :: String -> String
-escapeRegExp str =
-  if test reg str
+escapeRegex :: String -> String
+escapeRegex str =
+  if test hasReg str
     then replace reg "\\$&" str
     else str
   where
     reg = unsafeRegex "[\\\\^$.*+?()[\\]{}|]" global
+    hasReg = unsafeRegex (source reg) noFlags
 
 mkdirp :: FilePath -> Aff Unit
 mkdirp file =

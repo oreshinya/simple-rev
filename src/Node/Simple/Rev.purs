@@ -9,7 +9,7 @@ import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Foldable (foldr, notElem)
 import Data.Function.Uncurried (Fn4, runFn4)
-import Data.String (Pattern(..), Replacement(..), joinWith, replaceAll, split)
+import Data.String (Pattern(..), Replacement(..))
 import Data.String as String
 import Data.String.Regex (replace, test)
 import Data.String.Regex.Flags (global, noFlags)
@@ -68,7 +68,7 @@ buildFile opts manifest (Tuple from to) = do
   where
     from' = Path.concat [ opts.inputDir, from ]
     to' = Path.concat [ opts.outputDir, to ]
-    replaceURL (Tuple f t) = replaceAll (Pattern f) (Replacement t)
+    replaceURL (Tuple f t) = String.replaceAll (Pattern f) (Replacement t)
 
 createManifest :: Options -> Aff Manifest
 createManifest opts =
@@ -80,8 +80,8 @@ createManifest opts =
         ord -> ord
     compareDepth a b =
       compare
-        (Array.length $ split (Pattern "/") a)
-        (Array.length $ split (Pattern "/") b)
+        (Array.length $ String.split (Pattern "/") a)
+        (Array.length $ String.split (Pattern "/") b)
     compareLength a b =
       compare (String.length a) (String.length b)
     handleDir dir =
@@ -90,11 +90,11 @@ createManifest opts =
       let file' = Path.concat [ dir, file ]
       stats <- stat file'
       if isFile stats
-        then fileManifest file'
+        then fileManifest opts file'
         else if isDirectory stats then handleDir file' else pure []
 
-fileManifest :: FilePath -> Aff Manifest
-fileManifest file =
+fileManifest :: Options -> FilePath -> Aff Manifest
+fileManifest opts file =
   case extname file' of
     ".html" ->
       pure [ Tuple file' file' ]
@@ -106,7 +106,7 @@ fileManifest file =
       let reg = unsafeRegex ((escapeRegExp ext) <> "$") noFlags
       pure [ Tuple file' $ replace reg ("-" <> hash <> ext) file' ]
   where
-    file' = joinWith "/" $ Array.drop 1 $ split (Pattern "/") file
+    file' = String.drop (1 + String.length opts.inputDir) file
 
 contentHash :: FilePath -> Aff String
 contentHash file = do

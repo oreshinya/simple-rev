@@ -18,7 +18,7 @@ import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Aff (Aff, Error, makeAff, message, nonCanceler, runAff_)
 import Effect.Class (liftEffect)
-import Effect.Console (log)
+import Effect.Console (error, log)
 import Node.Buffer (toString)
 import Node.Crypto.Hash (Algorithm(..), createHash, digest, update)
 import Node.Encoding (Encoding(..))
@@ -44,7 +44,7 @@ rev = do
        in runAff_ cb (createManifest opts >>= build opts)
     _ -> log help
   where
-    cb (Left err) = log $ message err
+    cb (Left err) = error $ message err
     cb _ = log "Done."
 
 build :: Options -> Manifest -> Aff Unit

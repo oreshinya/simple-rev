@@ -25,7 +25,7 @@ import Node.Crypto.Hash (Algorithm(..), createHash, digest, update)
 import Node.Encoding (Encoding(..))
 import Node.FS.Aff (readFile, readTextFile, readdir, stat, writeFile, writeTextFile)
 import Node.FS.Stats (isDirectory, isFile)
-import Node.Path (FilePath, dirname, extname)
+import Node.Path (FilePath)
 import Node.Path as Path
 import Node.Process (argv, exit)
 import Simple.JSON (writeJSON)
@@ -42,7 +42,7 @@ main = do
   xs <- argv
   case xs of
     [ _, _, inputDir, outputDir ] ->
-      runAff_ cb $ rev { inputDir, outputDir }
+      runAff_ cb $ createOpts inputDir outputDir >>= rev
     _ ->
       log help
   where
@@ -50,6 +50,13 @@ main = do
       error $ message err
       exit 1
     cb _ = log "Done."
+
+createOpts :: FilePath -> FilePath -> Aff Options
+createOpts input output =
+  liftEffect
+    $ { inputDir: _, outputDir: _ }
+    <$> Path.resolve [] input
+    <*> Path.resolve [] output
 
 rev :: Options -> Aff Unit
 rev opts = do
@@ -77,8 +84,8 @@ buildFile
   -> Tuple FilePath FilePath
   -> Aff Unit
 buildFile opts manifest (Tuple from to) = do
-  mkdirp $ dirname to'
-  if notElem (extname to') replaceURLTargets
+  mkdirp $ Path.dirname to'
+  if notElem (Path.extname to') replaceURLTargets
     then readFile from' >>= writeFile to'
     else do
       txt <- readTextFile UTF8 from'
@@ -113,7 +120,7 @@ createManifest opts =
 
 fileManifest :: Options -> FilePath -> Aff Manifest
 fileManifest opts file =
-  case extname file' of
+  case Path.extname file' of
     ".html" ->
       pure [ Tuple file' file' ]
     "" -> do

@@ -1,10 +1,10 @@
 module Node.Simple.Rev
-  ( rev
+  ( main
   ) where
 
 import Prelude
 
-import Control.Parallel (parTraverse, parTraverse_)
+import Control.Parallel (parSequence_, parTraverse, parTraverse_)
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Foldable (foldr, notElem)
@@ -19,6 +19,7 @@ import Effect (Effect)
 import Effect.Aff (Aff, Error, makeAff, message, nonCanceler, runAff_)
 import Effect.Class (liftEffect)
 import Effect.Console (error, log)
+import Foreign.Object (fromFoldable)
 import Node.Buffer (toString)
 import Node.Crypto.Hash (Algorithm(..), createHash, digest, update)
 import Node.Encoding (Encoding(..))
@@ -27,6 +28,7 @@ import Node.FS.Stats (isDirectory, isFile)
 import Node.Path (FilePath, dirname, extname)
 import Node.Path as Path
 import Node.Process (argv, exit)
+import Simple.JSON (writeJSON)
 
 type Options =
   { inputDir :: FilePath
@@ -35,19 +37,35 @@ type Options =
 
 type Manifest = Array (Tuple FilePath FilePath)
 
-rev :: Effect Unit
-rev = do
+main :: Effect Unit
+main = do
   xs <- argv
   case xs of
     [ _, _, inputDir, outputDir ] ->
-      let opts = { inputDir, outputDir }
-       in runAff_ cb (createManifest opts >>= build opts)
-    _ -> log help
+      runAff_ cb $ rev { inputDir, outputDir }
+    _ ->
+      log help
   where
     cb (Left err) = do
       error $ message err
       exit 1
     cb _ = log "Done."
+
+rev :: Options -> Aff Unit
+rev opts = do
+  manifest <- createManifest opts
+  parSequence_
+    [ outputManifest opts manifest
+    , build opts manifest
+    ]
+
+outputManifest :: Options -> Manifest -> Aff Unit
+outputManifest opts manifest = do
+  mkdirp opts.outputDir
+  writeTextFile UTF8 path json
+  where
+    path = Path.concat [ opts.outputDir, "manifest.json" ]
+    json = writeJSON $ fromFoldable manifest
 
 build :: Options -> Manifest -> Aff Unit
 build opts manifest =

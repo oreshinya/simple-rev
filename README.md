@@ -2,7 +2,7 @@
 
 [![npm version](https://badge.fury.io/js/simple-rev.svg)](https://badge.fury.io/js/simple-rev)
 
-Add hash to static file names and replace urls with hashed version.
+Static asset revisioning.
 
 ## Installation
 
@@ -26,9 +26,10 @@ $ simple-rev <input_dir> <output_dir>
 
 It does do the following:
 
-- Create manifest from files of input directory
-- Copy files named with hash to output directory from manifest
-- Replace URLs with hashed version from manifest
+- Create manifest
+- Rename files with content hash
+- Copy file from input directory to output directory
+- Replace URLs with hashed version in files
 
 ## LICENSE
 

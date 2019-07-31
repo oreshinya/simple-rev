@@ -30,5 +30,5 @@
     "url": "https://github.com/oreshinya/simple-rev/issues"
   },
   "homepage": "https://github.com/oreshinya/simple-rev#readme",
-  "description": "Add hash to static file names and replace urls with hashed version."
+  "description": "Static asset revisioning."
 }

@@ -12,10 +12,6 @@
   },
   "author": "oreshinya",
   "license": "MIT",
-  "devDependencies": {
-    "purs-bin-simple": "^0.3.0",
-    "spago": "^0.8.5"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/oreshinya/simple-rev.git"
@@ -30,5 +26,9 @@
     "url": "https://github.com/oreshinya/simple-rev/issues"
   },
   "homepage": "https://github.com/oreshinya/simple-rev#readme",
-  "description": "Static asset revisioning."
+  "description": "Static asset revisioning.",
+  "devDependencies": {
+    "purescript": "^0.13.3",
+    "spago": "^0.9.0"
+  }
 }

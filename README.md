@@ -24,7 +24,7 @@ $ npm i -g simple-rev
 $ simple-rev <input_dir> <output_dir>
 ```
 
-It does do the following:
+It does the following:
 
 - Create manifest
 - Rename files with content hash

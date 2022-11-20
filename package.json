@@ -1,13 +1,14 @@
 {
   "name": "simple-rev",
   "version": "1.1.1",
+  "type": "module",
   "bin": {
     "simple-rev": "index.js"
   },
   "scripts": {
     "clean": "rm -rf output",
     "spago": "spago",
-    "build": "spago bundle-module -m Node.Simple.Rev -t lib/simple-rev.js -u '--strict --stash --censor-lib --is-lib=.spago'",
+    "build": "spago bundle-module -m Node.Simple.Rev -t lib/simple-rev.js --platform node -u '--strict --stash --censor-lib --is-lib=.spago'",
     "test": "node index.js sample public"
   },
   "author": "oreshinya",
@@ -28,8 +29,9 @@
   "homepage": "https://github.com/oreshinya/simple-rev#readme",
   "description": "Static asset revisioning.",
   "devDependencies": {
-    "purescript": "^0.13.6",
-    "purescript-psa": "^0.7.3",
-    "spago": "^0.14.0"
+    "esbuild": "^0.15.14",
+    "purescript": "^0.15.6",
+    "purescript-psa": "^0.8.2",
+    "spago": "^0.20.9"
   }
 }

@@ -1,3 +1,5 @@
 #!/usr/bin/env node
 
-require('./lib/simple-rev').main();
+import { main } from './lib/simple-rev.js';
+
+main();

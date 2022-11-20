@@ -8,7 +8,6 @@ import Control.Parallel (parSequence_, parTraverse, parTraverse_)
 import Data.Array as Array
 import Data.Either (Either(..))
 import Data.Foldable (foldr, notElem)
-import Data.Function.Uncurried (Fn4, runFn4)
 import Data.String (Pattern(..), Replacement(..))
 import Data.String as String
 import Data.String.Regex (replace, source, test)
@@ -16,14 +15,15 @@ import Data.String.Regex.Flags (global, noFlags)
 import Data.String.Regex.Unsafe (unsafeRegex)
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
-import Effect.Aff (Aff, Error, makeAff, message, nonCanceler, runAff_)
+import Effect.Aff (Aff, message, runAff_)
 import Effect.Class (liftEffect)
 import Effect.Console (error, log)
 import Foreign.Object (fromFoldable)
 import Node.Buffer (toString)
-import Node.Crypto.Hash (Algorithm(..), createHash, digest, update)
+import Node.Crypto.Hash (createHash, digest, update)
 import Node.Encoding (Encoding(..))
-import Node.FS.Aff (readFile, readTextFile, readdir, stat, writeFile, writeTextFile)
+import Node.FS.Aff (mkdir', readFile, readTextFile, readdir, stat, writeFile, writeTextFile)
+import Node.FS.Perms (all, mkPerms)
 import Node.FS.Stats (isDirectory, isFile)
 import Node.Path (FilePath)
 import Node.Path as Path
@@ -137,8 +137,8 @@ contentHash :: FilePath -> Aff String
 contentHash file = do
   buf <- readFile file
   liftEffect
-    $ createHash MD5
-    >>= flip update buf
+    $ createHash "md5"
+    >>= update buf
     >>= digest
     >>= toString Hex
 
@@ -166,9 +166,8 @@ escapeRegex str =
     hasReg = unsafeRegex (source reg) noFlags
 
 mkdirp :: FilePath -> Aff Unit
-mkdirp file =
-  makeAff \x ->
-    runFn4 mkdirpImpl Left Right file x $> nonCanceler
-
-foreign import mkdirpImpl
-  :: Fn4 (Error -> Either Error Unit) (Unit -> Either Error Unit) FilePath (Either Error Unit -> Effect Unit) (Effect Unit)
+mkdirp path =
+  mkdir' path
+    { mode: mkPerms all all all
+    , recursive: true
+    }
